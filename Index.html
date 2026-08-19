@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8 Player Ludo</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #181818;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 1200px;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 15px;
+            font-size: 2.5rem;
+        }
+
+        .setup {
+            background: #252525;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .setup select,
+        .setup button {
+            padding: 12px 20px;
+            margin: 5px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .setup button {
+            background: #ffffff;
+            color: #111;
+            font-weight: bold;
+        }
+
+        .game-area {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .players {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .player {
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            border: 3px solid transparent;
+        }
+
+        .active {
+            border-color: white;
+            transform: scale(1.05);
+        }
+
+        .red { background: #e53935; }
+        .blue { background: #1e88e5; }
+        .green { background: #43a047; }
+        .yellow { background: #fdd835; color: black; }
+        .orange { background: #fb8c00; }
+        .purple { background: #8e24aa; }
+        .pink { background: #ec407a; }
+        .black { background: #000000; }
+
+        .board {
+            width: min(90vw, 700px);
+            height: min(90vw, 700px);
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            grid-template-rows: repeat(15, 1fr);
+            border: 5px solid white;
+            background: white;
+        }
+
+        .cell {
+            border: 1px solid #999;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+        }
+
+        /* Player home areas */
+
+        .home {
+            grid-column: span 6;
+            grid-row: span 6;
+            padding: 10px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 8px;
+            border: 3px solid white;
+        }
+
+        .home.red-home {
+            background: #e53935;
+        }
+
+        .home.blue-home {
+            background: #1e88e5;
+        }
+
+        .home.green-home {
+            background: #43a047;
+        }
+
+        .home.yellow-home {
+            background: #fdd835;
+        }
+
+        .home.orange-home {
+            background: #fb8c00;
+        }
+
+        .home.purple-home {
+            background: #8e24aa;
+        }
+
+        .home.pink-home {
+            background: #ec407a;
+        }
+
+        .home.black-home {
+            background: #111;
+        }
+
+        .home-inner {
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: black;
+            font-weight: bold;
+        }
+
+        .token {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 2px 5px #333;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .token:hover {
+            transform: scale(1.15);
+        }
+
+        .center {
+            background: linear-gradient(
+                45deg,
+                #e53935 25%,
+                #1e88e5 25% 50%,
+                #43a047 50% 75%,
+                #fdd835 75%
+            );
+            border: 3px solid #222;
+        }
+
+        .controls {
+            background: #252525;
+            padding: 20px;
+            border-radius: 15px;
+            width: min(90vw, 500px);
+        }
+
+        .dice {
+            width: 80px;
+            height: 80px;
+            background: white;
+            color: black;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            font-weight: bold;
+            margin: 15px auto;
+        }
+
+        .roll-button {
+            background: #ffffff;
+            color: #111;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .roll-button:hover {
+            transform: scale(1.05);
+        }
+
+        .status {
+            margin-top: 10px;
+            font-size: 18px;
+        }
+
+        .reset-button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .token {
+                width: 20px;
+                height: 20px;
+            }
+
+            .dice {
+                width: 60px;
+                height: 60px;
+                font-size: 30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="game-container">
+
+    <h1>🎲 8 Player Ludo</h1>
+
+    <!-- PLAYER SETUP -->
+
+    <div class="setup" id="setup">
+
+        <h2>Select Number of Players</h2>
+
+        <select id="playerCount">
+            <option value="1">1 Player</option>
+            <option value="2">2 Players</option>
+            <option value="3">3 Players</option>
+            <option value="4">4 Players</option>
+            <option value="5">5 Players</option>
+            <option value="6">6 Players</option>
+            <option value="7">7 Players</option>
+            <option value="8">8 Players</option>
+        </select>
+
+        <button onclick="startGame()">Start Game</button>
+
+    </div>
+
+    <!-- GAME -->
+
+    <div class="game-area" id="gameArea">
+
+        <div class="players" id="players"></div>
+
+        <div class="board" id="board">
+
+            <!-- TOP HOMES -->
+
+            <div class="home red-home">
+                <div class="home-inner">
+                    <div class="token red" id="red-token"></div>
+                </div>
+                <div class="home-inner">
+                    <div class="token red"></div>
+                </div>
+                <div class="home-inner">
+                    <div class="token red"></div>
+                </div>
+                <div class="home-inner">
+                    <div class="token red"></div>
+                </div>
+            </div>
+
+            <div class="home blue-home">
+                <div class="home-inner">
+                    <div class="token blue"></div>
+                </div>
+                <div class="home-inner">
+                    <div class="token blue"></div>
+                </div>
+                <div class="home-inner">
+                    <div class="token blue"></div>
+                </div>
+                <div class="home-inner">
+                    <div class="token blue"></div>
+                </div>
+            </div>
+
+            <!-- MIDDLE -->
+
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+
+            <div class="cell center">
+                🏆
+            </div>
+
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+            <div class="cell"></div>
+
+            <!-- BOTTOM HOMES -->
+
+            <div class="home green-home">
+                <div class="home-inner">
+                    <div class="token green"></div>
+                </div>
+                <div class="home-inner">
+                    <div class="token green"></div>
+                </div>
+                <div class="home-inner">
+                    <div class="token green"></div>
+                </div>
+                <div class="home-inner">
+                    <div class="token green"></div>
+                </div>
+            </div>
+
+            <div class="home yellow-home">
+                <div class="home-inner">
+                    <div class="token yellow"></div>
+                </div>
+                <div class="home-inner">
+                    <div class="token yellow"></div>
+                </div>
+                <div class="home-inner">
+                    <div class="token yellow"></div>
+                </div>
+                <div class="home-inner">
+                    <div class="token yellow"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- DICE -->
+
+        <div class="controls">
+
+            <h2 id="turnText">Red's Turn</h2>
+
+            <div class="dice" id="dice">🎲</div>
+
+            <button class="roll-button" onclick="rollDice()">
+                Roll Dice
+            </button>
+
+            <div class="status" id="status">
+                Roll the dice to begin.
+            </div>
+
+            <button class="reset-button" onclick="location.reload()">
+                Reset Game
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+    const colors = [
+        "red",
+        "blue",
+        "green",
+        "yellow",
+        "orange",
+        "purple",
+        "pink",
+        "black"
+    ];
+
+    const colorNames = [
+        "Red",
+        "Blue",
+        "Green",
+        "Yellow",
+        "Orange",
+        "Purple",
+        "Pink",
+        "Black"
+    ];
+
+    let players = [];
+    let currentPlayer = 0;
+    let lastDice = 0;
+
+    function startGame() {
+
+        const count =
+            parseInt(document.getElementById("playerCount").value);
+
+        players = colors.slice(0, count);
+
+        currentPlayer = 0;
+
+        document.getElementById("setup").style.display = "none";
+
+        document.getElementById("gameArea").style.display = "flex";
+
+        createPlayerIndicators();
+
+        updateTurn();
+
+        document.getElementById("status").textContent =
+            "Roll the dice to begin the game.";
+
+    }
+
+    function createPlayerIndicators() {
+
+        const container =
+            document.getElementById("players");
+
+        container.innerHTML = "";
+
+        players.forEach((color, index) => {
+
+            const player =
+                document.createElement("div");
+
+            player.className =
+                `player ${color}`;
+
+            player.id =
+                `player-${index}`;
+
+            player.textContent =
+                `${colorNames[index]} Player`;
+
+            container.appendChild(player);
+
+        });
+
+    }
+
+    function updateTurn() {
+
+        document
+            .querySelectorAll(".player")
+            .forEach(player => {
+                player.classList.remove("active");
+            });
+
+        const activePlayer =
+            document.getElementById(`player-${currentPlayer}`);
+
+        if (activePlayer) {
+            activePlayer.classList.add("active");
+        }
+
+        document.getElementById("turnText").textContent =
+            `${colorNames[currentPlayer]}'s Turn`;
+
+    }
+
+    function rollDice() {
+
+        const dice =
+            Math.floor(Math.random() * 6) + 1;
+
+        lastDice = dice;
+
+        document.getElementById("dice").textContent =
+            dice;
+
+        document.getElementById("status").textContent =
+            `${colorNames[currentPlayer]} rolled ${dice}!`;
+
+        /*
+            In the next version we will use this value
+            to actually move the selected token.
+        */
+
+        if (dice !== 6) {
+
+            setTimeout(nextTurn, 1000);
+
+        } else {
+
+            document.getElementById("status").textContent +=
+                " You get another turn!";
+
+        }
+
+    }
+
+    function nextTurn() {
+
+        currentPlayer++;
+
+        if (currentPlayer >= players.length) {
+            currentPlayer = 0;
+        }
+
+        updateTurn();
+
+        document.getElementById("status").textContent =
+            "Roll the dice.";
+
+    }
+
+</script>
+
+</body>
+</html>
